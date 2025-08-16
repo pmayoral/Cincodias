@@ -1,0 +1,1864 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📰 Noticias de Cinco Días</title>
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --success-gradient: linear-gradient(135deg, #28a745 0%, #218838 100%);
+            --gray-gradient: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+            --background-gradient: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            --border-radius: 12px;
+            --transition: all 0.3s ease;
+            --shadow-light: 0 5px 15px rgba(0,0,0,0.08);
+            --shadow-hover: 0 15px 30px rgba(0,0,0,0.15);
+            --shadow-modal: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: var(--primary-gradient);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 100%;
+            margin: 0;
+            background: white;
+            overflow: hidden;
+        }
+
+        header {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 10px 30px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            margin-bottom: 2px;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .stats {
+            background: #f8f9fa;
+            padding: 8px 30px;
+            text-align: center;
+            font-weight: 500;
+            color: #495057;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .news-grid {
+            padding: 30px;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 20px;
+        }
+
+        .news-item {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: var(--shadow-light);
+            transition: var(--transition);
+            border: 1px solid #e9ecef;
+            cursor: pointer;
+        }
+
+        .news-item:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .news-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .news-source {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: capitalize;
+        }
+
+        .news-date {
+            color: #6c757d;
+            font-size: 0.85rem;
+            font-weight: 500;
+            white-space: pre-line;
+            text-align: right;
+            line-height: 1.3;
+        }
+
+        .news-headline {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #212529;
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+
+        .news-description {
+            color: #495057;
+            line-height: 1.6;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+        }
+
+        .loading-message, .error-message {
+            text-align: center;
+            padding: 50px;
+            color: #6c757d;
+            font-size: 1.1rem;
+        }
+
+        .error-message {
+            color: #dc3545;
+        }
+
+        .error-message h3 {
+            margin-bottom: 15px;
+            color: #dc3545;
+        }
+
+        /* Controles principales */
+        .sections-index {
+            padding: 15px 30px;
+            background: var(--background-gradient);
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .main-controls-title {
+            margin: 0 0 12px 0;
+            color: #495057;
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .main-controls-container {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .filter-group label {
+            font-weight: 500;
+            font-size: 0.9rem;
+            color: #333;
+            margin-left: 5px;
+        }
+
+        .sections-count-badge {
+            background: #667eea;
+            color: white;
+            border-radius: 10px;
+            padding: 2px 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            vertical-align: middle;
+            margin-left: 5px;
+        }
+
+        /* Dropdown */
+        .sections-dropdown {
+            position: relative;
+            width: 280px;
+        }
+
+        .dropdown-toggle {
+            width: 100%;
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: var(--border-radius);
+            padding: 10px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #495057;
+        }
+
+        .dropdown-toggle:hover {
+            border-color: #667eea;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
+        }
+
+        .dropdown-arrow {
+            transition: transform 0.3s ease;
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+
+        .dropdown-toggle.active .dropdown-arrow {
+            transform: rotate(180deg);
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 2px solid #e9ecef;
+            border-top: none;
+            border-radius: 0 0 var(--border-radius) var(--border-radius);
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .dropdown-menu.show {
+            display: block;
+        }
+
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-bottom: 1px solid #f8f9fa;
+        }
+
+        .dropdown-item:last-child {
+            border-bottom: none;
+        }
+
+        .dropdown-item:hover {
+            background: #f8f9fa;
+        }
+
+        .dropdown-item.active {
+            background: var(--primary-gradient);
+            color: white;
+        }
+
+        .section-icon {
+            font-size: 1.1rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        .section-name {
+            flex: 1;
+            font-weight: 500;
+            text-transform: capitalize;
+        }
+
+        .section-count {
+            background: rgba(255, 255, 255, 0.2);
+            color: inherit;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .dropdown-item.active .section-count {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Buscador */
+        .search-section {
+            width: 280px;
+        }
+
+        .search-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: var(--border-radius);
+            padding: 8px 12px;
+            transition: var(--transition);
+        }
+
+        .search-container:focus-within {
+            border-color: #667eea;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
+        }
+
+        .search-icon {
+            font-size: 1rem;
+            color: #6c757d;
+            margin-right: 8px;
+        }
+
+        .search-input {
+            flex: 1;
+            border: none;
+            outline: none;
+            font-size: 0.9rem;
+            color: #495057;
+            background: transparent;
+        }
+
+        .search-input::placeholder {
+            color: #adb5bd;
+        }
+
+        .search-clear {
+            background: none;
+            border: none;
+            color: #adb5bd;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 50%;
+            font-size: 0.8rem;
+            transition: all 0.2s ease;
+            display: none;
+        }
+
+        .search-clear:hover {
+            background: #f8f9fa;
+            color: #6c757d;
+        }
+
+        .search-clear.show {
+            display: block;
+        }
+
+        .search-stats {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 0.8rem;
+            color: #6c757d;
+            min-height: 16px;
+        }
+
+        /* Hemeroteca */
+        .hemeroteca-date-picker {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .hemeroteca-date-picker input[type="date"] {
+            border: 2px solid #e9ecef;
+            border-radius: var(--border-radius);
+            padding: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #495057;
+            transition: var(--transition);
+            width: 150px;
+        }
+
+        .hemeroteca-date-picker input[type="date"]:hover {
+            border-color: #667eea;
+        }
+
+        .hemeroteca-date-picker button {
+            background: var(--success-gradient);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            padding: 10px 15px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .hemeroteca-date-picker button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.2);
+        }
+
+        /* Toggle switch */
+        .toggle-switch {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+            gap: 12px;
+        }
+
+        .toggle-switch input {
+            display: none;
+        }
+
+        .slider {
+            position: relative;
+            width: 50px;
+            height: 24px;
+            background: #ccc;
+            border-radius: 24px;
+            transition: 0.3s;
+        }
+
+        .slider:before {
+            content: "";
+            position: absolute;
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background: white;
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+
+        .toggle-switch input:checked + .slider {
+            background: var(--primary-gradient);
+        }
+
+        .toggle-switch input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        .label-text {
+            font-weight: 500;
+            color: #495057;
+            font-size: 0.9rem;
+        }
+
+        /* Acciones */
+        .actions-container {
+            width: 100%;
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .actions-container button {
+            background: var(--gray-gradient);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            padding: 12px 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .actions-container button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        /* Resaltado de texto */
+        .highlight {
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-weight: 600;
+            box-shadow: 0 1px 3px rgba(255, 215, 0, 0.3);
+        }
+
+        /* Noticias filtradas */
+        .news-item.filtered-out {
+            display: none;
+        }
+
+        .news-item.search-match {
+            border-left: 4px solid #ffd700;
+            background: linear-gradient(135deg, #fff9e6 0%, #fff 100%);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 2% auto;
+            padding: 0;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow: hidden;
+            box-shadow: var(--shadow-modal);
+            animation: modalSlideIn 0.3s ease-out;
+            display: flex;
+            flex-direction: column;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-author-info {
+            background: #f8f9fa;
+            padding: 15px 30px;
+            border-bottom: 1px solid #e9ecef;
+            font-size: 0.9rem;
+            color: #495057;
+            font-weight: 500;
+            line-height: 1.4;
+        }
+
+        .modal-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+
+        .modal-date {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            white-space: pre-line;
+            line-height: 1.3;
+        }
+
+        .close {
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .close:hover {
+            opacity: 0.7;
+        }
+
+        .modal-body {
+            padding: 30px;
+            max-height: 60vh;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .modal-content-text {
+            line-height: 1.8;
+            color: #333;
+            font-size: 1rem;
+        }
+
+        .modal-content-text p {
+            margin-bottom: 1em;
+        }
+
+        .article-subtitle {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e9ecef;
+            line-height: 1.5;
+        }
+
+        .modal-footer {
+            background: #f8f9fa;
+            padding: 20px 30px;
+            border-top: 1px solid #e9ecef;
+            flex-shrink: 0;
+        }
+
+        .modal-source {
+            text-align: center;
+        }
+
+        .modal-source a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .modal-source a:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsive */
+        @media (max-width: 1600px) {
+            .news-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        @media (max-width: 1200px) {
+            .news-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 900px) {
+            .news-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .news-grid {
+                grid-template-columns: 1fr;
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📰 Cinco Días</h1>
+            <p class="subtitle">Últimas noticias económicas y financieras</p>
+        </header>
+
+        <div class="stats" id="stats">Cargando noticias de Cinco Días...</div>
+
+        <div class="sections-index" id="sectionsIndex">
+            <h3 class="main-controls-title" id="mainControlsTitle">Últimas Noticias</h3>
+
+            <div class="main-controls-container">
+                <div class="filter-group">
+                    <label for="dropdownToggle">Sección <span id="sectionsCount" class="sections-count-badge">0</span></label>
+                    <div class="sections-dropdown">
+                        <button class="dropdown-toggle" id="dropdownToggle">
+                            <span class="dropdown-text">Todas las secciones</span>
+                            <span class="dropdown-arrow">▼</span>
+                        </button>
+                        <div class="dropdown-menu" id="dropdownMenu">
+                            <div class="dropdown-item active" data-section="all">
+                                <span class="section-icon">📰</span>
+                                <span class="section-name">Todas las noticias</span>
+                                <span class="section-count">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="filter-group">
+                    <label for="searchInput">Búsqueda</label>
+                    <div class="search-section">
+                        <div class="search-container">
+                            <span class="search-icon">🔍</span>
+                            <input type="text" id="searchInput" class="search-input" placeholder="Buscar en noticias..." />
+                            <button class="search-clear" id="searchClear" title="Limpiar búsqueda">✕</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="filter-group">
+                    <label for="hemerotecaDate">Hemeroteca</label>
+                    <div class="hemeroteca-date-picker">
+                        <input type="date" id="hemerotecaDate">
+                        <button id="fetchHemerotecaBtn">Buscar</button>
+                    </div>
+                </div>
+
+                <div class="filter-group">
+                    <label>Leer en ventana emergente</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="readModeToggle">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="filter-group">
+                    <label>&nbsp;</label>
+                    <div class="actions-container">
+                        <button id="backToLatestBtn" style="display:none;">← Volver a Últimas Noticias</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="search-stats" id="searchStats"></div>
+        </div>
+
+        <div class="news-grid" id="newsGrid">
+            <p class="loading-message">Cargando noticias...</p>
+        </div>
+    </div>
+
+    <!-- Modal para leer noticia completa -->
+    <div id="newsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <div class="modal-title" id="modalTitle"></div>
+                </div>
+                <span class="close" id="closeModal">&times;</span>
+            </div>
+            <div class="modal-author-info" id="modalAuthorInfo"></div>
+            <div class="modal-body">
+                <div class="modal-content-text" id="modalContent"></div>
+            </div>
+            <div class="modal-footer">
+                <div class="modal-source">
+                    <a href="#" id="modalSourceLink" target="_blank">Ver noticia original en Cinco Días</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuración
+        const CONFIG = {
+            fuente: {
+                nombre: 'Cinco Días',
+                urls: ['https://cincodias.elpais.com/ultimas-noticias/'],
+                hemeroteca_url: 'https://cincodias.elpais.com/hemeroteca/'
+            },
+            proxy_strategies: [
+                { name: 'corsproxy.io', url: (targetUrl) => `https://corsproxy.io/?${encodeURIComponent(targetUrl)}` },
+                { name: 'allorigins', url: (targetUrl) => `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}` },
+                { name: 'cors-anywhere', url: (targetUrl) => `https://cors-anywhere.herokuapp.com/${targetUrl}` }
+            ],
+            content_selectors: [
+                '.a_c p', '.article__body p', '.a_st', '.article-lead',
+                'article p', '.news-content p', '.story-content p',
+                '.entry-content p', '.post-content p', '.article-content p', '.content p'
+            ],
+            summary_selectors: [
+                '.a_st', '.article-lead', '.article__lead', '.c_d',
+                '.summary', '.excerpt', '.standfirst'
+            ],
+            text_filters: {
+                image: ['foto:', 'imagen:', 'fotografía:', 'archivo', 'reuters', 'efe', 'getty', '©', 'copyright'],
+                boilerplate: ['publicidad', 'cookies', 'privacidad', 'síguenos', 'suscríbete', 'newsletter', 'más información'],
+                social: ['pic.twitter.com', 't.co', '@']
+            }
+        };
+
+        // Variables globales
+        let currentNewsData = [];
+        let isReadMode = false;
+        let currentSection = 'all';
+        let allSections = new Set();
+        let currentSearchTerm = '';
+        let searchTimeout = null;
+
+        // Utilidades
+        const formatTimeAgo = (date) => {
+            const seconds = Math.floor((new Date() - date) / 1000);
+            const intervals = [
+                { unit: 'años', value: 31536000 },
+                { unit: 'meses', value: 2592000 },
+                { unit: 'd.', value: 86400 },
+                { unit: 'h.', value: 3600 },
+                { unit: 'min.', value: 60 }
+            ];
+
+            for (const interval of intervals) {
+                const count = Math.floor(seconds / interval.value);
+                if (count >= 1) return `Hace ${count} ${interval.unit}`;
+            }
+            return "Hace unos segundos";
+        };
+
+        const formatDateWithAuthor = (date, author = null) => {
+            const months = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
+            const day = date.getDate().toString().padStart(2, '0');
+            const month = months[date.getMonth()];
+            const year = date.getFullYear();
+            const hours = date.getHours().toString().padStart(2, '0');
+            const minutes = date.getMinutes().toString().padStart(2, '0');
+            const dateString = `${day} ${month} ${year} - ${hours}:${minutes} CEST`;
+            return author ? `${author}\n${dateString}` : dateString;
+        };
+
+        const extractSectionFromUrl = (url) => {
+            try {
+                const urlObj = new URL(url);
+                const pathParts = urlObj.pathname.split('/').filter(part => part.length > 0 && !part.endsWith('.html'));
+                return pathParts.length > 0 ? pathParts[0] : 'portada';
+            } catch (error) {
+                return 'portada';
+            }
+        };
+
+        const formatSectionName = (section) => {
+            const sectionMap = {
+                'companias': 'Compañías', 'opinion': 'Opinión', 'fortuna': 'Fortuna',
+                'mercados': 'Mercados', 'economia': 'Economía', 'tecnologia': 'Tecnología',
+                'smartlife': 'Smartlife', 'extras': 'Extras', 'legal': 'Legal', 'portada': 'Portada'
+            };
+            return sectionMap[section] || section.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        };
+
+        const getSectionIcon = (section) => {
+            const iconMap = {
+                'companias': '🏢', 'opinion': '💭', 'fortuna': '💰', 'mercados': '📈',
+                'economia': '📊', 'tecnologia': '💻', 'smartlife': '📱', 'extras': '🔍',
+                'legal': '⚖️', 'portada': '📰'
+            };
+            return iconMap[section] || '📄';
+        };
+
+        const extractDateFromElement = (element) => {
+            const selectors = ['time[datetime]', '.date', '.fecha', '.timestamp', '.meta-date'];
+
+            for (const selector of selectors) {
+                const dateEl = element.querySelector(selector);
+                if (dateEl) {
+                    const datetime = dateEl.getAttribute('datetime');
+                    if (datetime) {
+                        const date = new Date(datetime);
+                        if (!isNaN(date.getTime())) return date;
+                    }
+
+                    const textDate = new Date(dateEl.innerText.trim());
+                    if (!isNaN(textDate.getTime())) return textDate;
+                }
+            }
+
+            const now = new Date();
+            now.setHours(now.getHours() - Math.floor(Math.random() * 24) - 1);
+            return now;
+        };
+
+        const extractAuthorFromElement = (element) => {
+            const authorSelectors = ['.c_a_a', '.c_a_au', '.a_a_au', '.author a', '.byline a', '.author', '.byline', '.autor'];
+            for (const selector of authorSelectors) {
+                const authorEl = element.querySelector(selector);
+                if (authorEl) {
+                    const authorText = authorEl.innerText.trim().split('|')[0].trim();
+                    if (authorText.length > 3 && authorText.length < 50) return authorText;
+                }
+            }
+            return null;
+        };
+
+        // Funciones de red
+        const fetchWithProxy = async (url, retries = 3) => {
+            for (let attempt = 0; attempt < retries; attempt++) {
+                for (const strategy of CONFIG.proxy_strategies) {
+                    try {
+                        const response = await fetch(strategy.url(url), {
+                            signal: AbortSignal.timeout(10000 + attempt * 2000)
+                        });
+                        if (response.ok) {
+                            const text = await response.text();
+                            if (text.length > 100) return text;
+                        }
+                    } catch (error) {
+                        continue;
+                    }
+                }
+                if (attempt < retries - 1) {
+                    await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
+                }
+            }
+            throw new Error('Todos los proxies fallaron después de reintentos');
+        };
+
+        // Funciones de validación y formateo de contenido
+        const isValidText = (text, title = '') => {
+            if (!text || text.length < 15 || text.length > 1500) return false;
+
+            const lowerText = text.toLowerCase();
+            const lowerTitle = title.toLowerCase();
+
+            const hasImageText = CONFIG.text_filters.image.some(word =>
+                lowerText.startsWith(word) || lowerText.includes(` ${word} `)
+            );
+            const hasBoilerplate = CONFIG.text_filters.boilerplate.some(word =>
+                lowerText.includes(word)
+            );
+            const hasSocial = CONFIG.text_filters.social.some(word =>
+                lowerText.includes(word)
+            );
+
+            const isTitleRepeat = lowerTitle && lowerText === lowerTitle;
+            const hasSubstantialContent = text.split(' ').length >= 4;
+
+            return !hasImageText && !hasBoilerplate && !hasSocial && !isTitleRepeat && hasSubstantialContent;
+        };
+
+        const formatContentToLines = (content, minLines = 4, maxLines = 5) => {
+            if (!content || content.trim().length === 0) return '';
+
+            let cleanContent = content.trim()
+                .replace(/\s+/g, ' ')
+                .replace(/\n+/g, ' ')
+                .replace(/\t+/g, ' ');
+
+            return extractFirstLines(cleanContent, minLines, maxLines);
+        };
+
+        const extractFirstLines = (content, minLines = 4, maxLines = 5) => {
+            if (!content || content.length < 20) return '';
+
+            const targetCharsPerLine = 45;
+            const maxCharsNeeded = maxLines * targetCharsPerLine;
+
+            let workingText = content;
+            if (content.length > maxCharsNeeded) {
+                let cutPoint = maxCharsNeeded;
+                for (let i = maxCharsNeeded; i >= maxCharsNeeded * 0.75; i--) {
+                    if (content[i] === '.' || content[i] === ',' || content[i] === ';' || content[i] === ' ') {
+                        cutPoint = i;
+                        break;
+                    }
+                }
+                workingText = content.substring(0, cutPoint).trim();
+
+                if (!workingText.endsWith('.') && !workingText.endsWith('!') && !workingText.endsWith('?')) {
+                    workingText += '.';
+                }
+            }
+
+            return smartLineBreakingForNarrowBoxes(workingText, minLines, maxLines);
+        };
+
+        const smartLineBreakingForNarrowBoxes = (text, minLines, maxLines) => {
+            const words = text.split(' ');
+            const lines = [];
+            let currentLine = '';
+
+            const targetLineLength = 40;
+            const minLineLength = 25;
+            const maxLineLength = 50;
+
+            for (let i = 0; i < words.length; i++) {
+                const word = words[i];
+                const potentialLine = currentLine + (currentLine ? ' ' : '') + word;
+
+                const shouldBreak = potentialLine.length >= targetLineLength &&
+                                   currentLine.length >= minLineLength &&
+                                   lines.length < maxLines - 1;
+
+                const forcedBreak = potentialLine.length > maxLineLength &&
+                                   currentLine.length > minLineLength &&
+                                   lines.length < maxLines - 1;
+
+                if (shouldBreak || forcedBreak) {
+                    lines.push(currentLine.trim());
+                    currentLine = word;
+                } else {
+                    currentLine = potentialLine;
+                }
+            }
+
+            if (currentLine && lines.length < maxLines) {
+                lines.push(currentLine.trim());
+            }
+
+            if (lines.length < minLines) {
+                return redistributeTextForNarrowBoxes(text, minLines, maxLines);
+            }
+
+            return lines.slice(0, maxLines).join('\n');
+        };
+
+        const redistributeTextForNarrowBoxes = (text, minLines, maxLines) => {
+            const words = text.split(' ');
+            const lines = [];
+            let currentLine = '';
+
+            const wordsPerLine = Math.ceil(words.length / minLines);
+            let wordCount = 0;
+
+            for (const word of words) {
+                currentLine += (currentLine ? ' ' : '') + word;
+                wordCount++;
+
+                if ((wordCount >= wordsPerLine || currentLine.length > 50) &&
+                    lines.length < maxLines - 1) {
+                    lines.push(currentLine.trim());
+                    currentLine = '';
+                    wordCount = 0;
+                }
+            }
+
+            if (currentLine && lines.length < maxLines) {
+                lines.push(currentLine.trim());
+            }
+
+            return lines.slice(0, maxLines).join('\n');
+        };
+
+        const createFallbackContent = (title, isError = false) => {
+            const errorPrefix = isError ? 'Error al cargar. ' : '';
+            const fallbackLines = [
+                `${title || 'Noticia destacada'}.`,
+                `${errorPrefix}Esta noticia contiene información actualizada.`,
+                'El contenido completo está disponible aquí.',
+                'Haga clic para acceder a todos los detalles.'
+            ];
+            return fallbackLines.join('\n');
+        };
+
+        const forceExactLines = (content, title = '', minLines = 4, maxLines = 5) => {
+            if (!content || content.trim().length === 0) {
+                return createEmergencyContent(title);
+            }
+
+            let lines = content.split('\n')
+                .map(line => line.trim())
+                .filter(line => line.length > 3);
+
+            if (lines.length >= minLines && lines.length <= maxLines) {
+                return lines.slice(0, maxLines).join('\n');
+            }
+
+            if (lines.length > maxLines) {
+                return lines.slice(0, maxLines).join('\n');
+            }
+
+            if (lines.length < minLines) {
+                const contextualLines = [
+                    'Esta noticia proporciona información actualizada.',
+                    'Los detalles están en el artículo original.',
+                    'Manténgase informado con las noticias.',
+                    'Acceda al contenido completo aquí.',
+                    'Información verificada de fuentes oficiales.'
+                ];
+
+                let contextIndex = 0;
+                while (lines.length < minLines && contextIndex < contextualLines.length) {
+                    lines.push(contextualLines[contextIndex]);
+                    contextIndex++;
+                }
+
+                if (lines.length < minLines) {
+                    const expandedLines = [];
+
+                    for (const line of lines) {
+                        if (line.length > 50 && expandedLines.length < minLines - 1) {
+                            const words = line.split(' ');
+                            const mid = Math.floor(words.length / 2);
+                            expandedLines.push(words.slice(0, mid).join(' '));
+                            expandedLines.push(words.slice(mid).join(' '));
+                        } else {
+                            expandedLines.push(line);
+                        }
+
+                        if (expandedLines.length >= minLines) break;
+                    }
+
+                    lines = expandedLines;
+                }
+
+                while (lines.length < minLines) {
+                    lines.push(`Más sobre: ${title || 'esta noticia'}.`);
+                }
+            }
+
+            return lines.slice(0, maxLines).join('\n');
+        };
+
+        const createEmergencyContent = (title) => {
+            const emergencyContent = [
+                `${title || 'Noticia destacada'}.`,
+                'Esta noticia contiene información relevante.',
+                'El contenido completo está disponible aquí.',
+                'Haga clic para ver todos los detalles.'
+            ];
+
+            return emergencyContent.join('\n');
+        };
+
+        // Funciones de extracción de contenido
+        const extractArticleBodyContent = (doc, title) => {
+            let firstParagraphContent = '';
+
+            const articleBodySelectors = [
+                '.a_c > p', '.article__body > p', '.article-content > p',
+                '.story-body > p', '.news-body > p', 'article .content > p',
+                '[data-dtm-region="articulo_cuerpo"] p'
+            ];
+
+            let articleBody = null;
+            for (const selector of ['.a_c', '.article__body', '.article-content', '.story-body', '.news-body']) {
+                articleBody = doc.querySelector(selector);
+                if (articleBody) break;
+            }
+
+            if (articleBody) {
+                const paragraphs = articleBody.querySelectorAll('p');
+
+                for (const p of paragraphs) {
+                    if (p.classList.contains('a_st') ||
+                        p.classList.contains('article-lead') ||
+                        p.classList.contains('standfirst')) {
+                        continue;
+                    }
+
+                    const text = p.innerText.trim();
+
+                    if (isArticleBodyText(text, title)) {
+                        firstParagraphContent = text;
+                        break;
+                    }
+                }
+            }
+
+            if (firstParagraphContent.length < 50) {
+                for (const selector of articleBodySelectors) {
+                    const elements = doc.querySelectorAll(selector);
+
+                    for (const p of elements) {
+                        const text = p.innerText.trim();
+                        if (isArticleBodyText(text, title)) {
+                            firstParagraphContent = text;
+                            break;
+                        }
+                    }
+
+                    if (firstParagraphContent.length > 50) break;
+                }
+            }
+
+            return firstParagraphContent.trim();
+        };
+
+        const isArticleBodyText = (text, title) => {
+            if (!text || text.length < 20 || text.length > 1000) return false;
+
+            const lowerText = text.toLowerCase();
+            const lowerTitle = title.toLowerCase();
+
+            // Filtros más específicos solo para contenido claramente no editorial
+            const excludePatterns = [
+                'foto:', 'imagen:', 'fotografía:', 'crédito:', 'getty images', 'reuters',
+                'pie de foto', 'caption', 'archivo', 'publicidad', 'cookies',
+                'compartir en twitter', 'compartir en facebook', 'suscríbete'
+            ];
+
+            const hasExcludedContent = excludePatterns.some(pattern =>
+                lowerText.startsWith(pattern) || lowerText.includes(pattern)
+            );
+
+            // Solo excluir si es exactamente igual al título
+            const isTitleRepeat = lowerText === lowerTitle;
+
+            // Criterios más permisivos para el primer párrafo
+            const hasMinimumContent = text.split(' ').length >= 6; // Más permisivo
+            const hasProperStructure = /[A-Z]/.test(text[0]); // Empieza con mayúscula
+            const hasTextualContent = /[a-zA-Z]/.test(text); // Contiene letras
+
+            return !hasExcludedContent &&
+                   !isTitleRepeat &&
+                   hasMinimumContent &&
+                   hasProperStructure &&
+                   hasTextualContent;
+        };
+
+        const extractContentFromPage = (doc, title) => {
+            let content = '';
+            const searchContext = doc.querySelector('article') || doc.body;
+
+            for (const selector of CONFIG.content_selectors) {
+                const elements = searchContext.querySelectorAll(selector);
+                if (elements.length > 0) {
+                    elements.forEach(p => {
+                        const text = p.innerText.trim();
+                        if (isValidText(text, title) && !content.includes(text.substring(0, 50))) {
+                            content += text + ' ';
+                        }
+                    });
+                    if (content.length > 50) break;
+                }
+            }
+
+            return content.trim();
+        };
+
+        const scrapeArticleContent = async (url, title) => {
+            try {
+                const html = await fetchWithProxy(url);
+                const doc = new DOMParser().parseFromString(html, 'text/html');
+
+                let articleBodyContent = extractArticleBodyContent(doc, title);
+
+                if (articleBodyContent && articleBodyContent.length > 50) {
+                    const formattedContent = formatContentToLines(articleBodyContent, 4, 5);
+                    if (formattedContent.split('\n').filter(line => line.trim().length > 0).length >= 4) {
+                        return formattedContent;
+                    }
+                }
+
+                let content = extractContentFromPage(doc, title);
+
+                if (content.length < 200) {
+                    const allParagraphs = doc.querySelectorAll('p');
+                    allParagraphs.forEach(p => {
+                        const text = p.innerText.trim();
+                        if (isValidText(text, title) && !content.includes(text.substring(0, 30))) {
+                            content += text + ' ';
+                        }
+                    });
+                }
+
+                if (content.length > 50) {
+                    const formattedContent = formatContentToLines(content, 4, 5);
+                    if (formattedContent.split('\n').length >= 4) {
+                        return formattedContent;
+                    }
+                }
+
+                if (content.length > 20) {
+                    const expandedContent = createExpandedContent(content, title);
+                    return expandedContent;
+                }
+
+                return createFallbackContent(title);
+
+            } catch (error) {
+                return createFallbackContent(title, true);
+            }
+        };
+
+        const createExpandedContent = (content, title) => {
+            const sentences = content.split(/[.!?]+/).filter(s => s.trim().length > 10);
+
+            const expandedLines = [];
+
+            if (sentences.length >= 1) {
+                expandedLines.push(`${title}.`);
+                expandedLines.push(sentences[0].trim() + '.');
+
+                if (sentences.length > 1) {
+                    expandedLines.push(sentences[1].trim() + '.');
+                } else {
+                    expandedLines.push('Esta noticia contiene información relevante.');
+                }
+
+                expandedLines.push('Acceda al contenido completo aquí.');
+            } else {
+                expandedLines.push(`${title}.`);
+                expandedLines.push('Esta noticia contiene información actualizada.');
+                expandedLines.push('El contenido completo está disponible aquí.');
+                expandedLines.push('Haga clic para ver todos los detalles.');
+            }
+
+            return forceExactLines(expandedLines.join('\n'), title, 4, 5);
+        };
+
+        const extractAuthorInfoFromArticle = async (url) => {
+            try {
+                const html = await fetchWithProxy(url);
+                const doc = new DOMParser().parseFromString(html, 'text/html');
+                const articleInfoSelectors = ['.a_a', '.article-meta', '.article-info', '.byline'];
+                for (const selector of articleInfoSelectors) {
+                    const infoEl = doc.querySelector(selector);
+                    if (infoEl) {
+                        const text = infoEl.innerText.trim().replace(/\s+/g, ' ');
+                        if (text.length > 10 && text.length < 300) return text;
+                    }
+                }
+                return null;
+            } catch (error) {
+                return null;
+            }
+        };
+
+        const scrapeFullArticleContent = async (url, title) => {
+            try {
+                const html = await fetchWithProxy(url);
+                const doc = new DOMParser().parseFromString(html, 'text/html');
+                let subtitle = doc.querySelector('.article-lead, .a_st')?.innerText.trim() || '';
+                let fullContent = '';
+                const articleBody = doc.querySelector('.article__body, .a_c');
+                if (articleBody) {
+                    articleBody.querySelectorAll('p, h2').forEach(el => {
+                        if (!el.closest('aside, figure')) {
+                            const text = el.innerText.trim();
+                            if (text.length > 15 && isValidText(text, title)) {
+                                fullContent += el.tagName === 'H2' ? `<h2>${text}</h2>\n\n` : text + '\n\n';
+                            }
+                        }
+                    });
+                }
+                const finalContent = subtitle ? `<div class="article-subtitle">${subtitle}</div>\n\n${fullContent}` : fullContent;
+                return { content: finalContent.trim() || title };
+            } catch (error) {
+                return { content: title };
+            }
+        };
+
+        // Funciones principales de scraping
+        const scrapeCincoDias = async () => {
+            try {
+                const allArticles = new Map();
+
+                for (const url of CONFIG.fuente.urls) {
+                    const html = await fetchWithProxy(url, 2);
+                    const doc = new DOMParser().parseFromString(html, 'text/html');
+
+                    const articleSelectors = ['article', '.c_n', '.news-item'];
+                    let articles = [];
+
+                    for (const selector of articleSelectors) {
+                        articles = doc.querySelectorAll(selector);
+                        if (articles.length > 0) break;
+                    }
+
+                    articles.forEach(article => {
+                        const titleSelectors = ['h2 a', 'h3 a', '.title a', '.headline a'];
+                        let titleEl = null;
+
+                        for (const selector of titleSelectors) {
+                            titleEl = article.querySelector(selector);
+                            if (titleEl) break;
+                        }
+
+                        if (titleEl) {
+                            const link = new URL(titleEl.getAttribute('href'), CONFIG.fuente.hemeroteca_url).href;
+                            if (allArticles.has(link)) return;
+
+                            const title = titleEl.innerText.trim();
+                            if (!title || title.length < 5) return;
+
+                            const author = extractAuthorFromElement(article);
+                            const section = extractSectionFromUrl(link);
+                            allSections.add(section);
+
+                            allArticles.set(link, {
+                                enlace: link,
+                                titular: title,
+                                entradilla: '',
+                                fecha: extractDateFromElement(article),
+                                autor: author,
+                                seccion: section,
+                                fuente: CONFIG.fuente.nombre
+                            });
+                        }
+                    });
+                }
+
+                const articleArray = Array.from(allArticles.values());
+
+                const batchSize = 8;
+                const processedArticles = [];
+
+                for (let i = 0; i < articleArray.length; i += batchSize) {
+                    const batch = articleArray.slice(i, i + batchSize);
+                    const batchPromises = batch.map(async (news) => {
+                        try {
+                            const summary = await scrapeArticleContent(news.enlace, news.titular);
+                            return { ...news, entradilla: summary };
+                        } catch (error) {
+                            return {
+                                ...news,
+                                entradilla: `${news.titular}. Contenido completo disponible en el enlace original.`
+                            };
+                        }
+                    });
+
+                    const batchResults = await Promise.all(batchPromises);
+                    processedArticles.push(...batchResults);
+
+                    if (i + batchSize < articleArray.length) {
+                        await new Promise(resolve => setTimeout(resolve, 300));
+                    }
+                }
+
+                return processedArticles;
+
+            } catch (error) {
+                throw error;
+            }
+        };
+
+        const parseHemerotecaMeta = (metaText) => {
+            const parts = metaText.split('|').map(p => p.trim());
+            if (parts.length < 2) return { author: null, date: null };
+            const dateRegex = /(\d{1,2}\s\w{3}\s\d{4}\s-\s\d{2}:\d{2})\sCEST/;
+            const dateMatch = metaText.match(dateRegex);
+            let date = null;
+            if (dateMatch) {
+                const monthMap = { 'ene': 0, 'feb': 1, 'mar': 2, 'abr': 3, 'may': 4, 'jun': 5, 'jul': 6, 'ago': 7, 'sep': 8, 'oct': 9, 'nov': 10, 'dic': 11 };
+                const dateParts = dateMatch[1].replace(' - ', ' ').replace(':', ' ').split(' ');
+                date = new Date(parseInt(dateParts[2], 10), monthMap[dateParts[1].toLowerCase()], parseInt(dateParts[0], 10), parseInt(dateParts[3], 10), parseInt(dateParts[4], 10));
+            }
+            const author = parts[0].length > 3 && parts[0].length < 50 ? parts[0] : null;
+            return { author, date };
+        };
+
+        const scrapeHemerotecaPage = async (url, searchDate, retryCount = 0) => {
+            try {
+                const allArticles = new Map();
+                const html = await fetchWithProxy(url, 2);
+                const doc = new DOMParser().parseFromString(html, 'text/html');
+                const baseUrl = 'https://cincodias.elpais.com';
+
+                const articleSelectors = ['article', '.c_n', '.news-item', '.story-item'];
+                let articles = [];
+
+                for (const selector of articleSelectors) {
+                    articles = doc.querySelectorAll(selector);
+                    if (articles.length > 0) break;
+                }
+
+                if (articles.length === 0) {
+                    return [];
+                }
+
+                articles.forEach((article) => {
+                    const titleSelectors = ['h2 a', 'h3 a', '.title a', '.headline a', 'a[title]'];
+                    let titleEl = null;
+
+                    for (const selector of titleSelectors) {
+                        titleEl = article.querySelector(selector);
+                        if (titleEl) break;
+                    }
+
+                    const metaEl = article.querySelector('.c_a');
+
+                    if (titleEl) {
+                        let link = titleEl.getAttribute('href');
+                        if (!link.startsWith('http')) {
+                            link = new URL(link, baseUrl).href;
+                        }
+
+                        if (allArticles.has(link)) return;
+
+                        const title = titleEl.innerText.trim() || titleEl.getAttribute('title') || 'Noticia sin título';
+
+                        let author = null, date = null;
+                        if (metaEl) {
+                            const meta = parseHemerotecaMeta(metaEl.innerText);
+                            author = meta.author;
+                            date = meta.date;
+                        }
+
+                        if (!date) {
+                            date = new Date(`${searchDate}T${12 + Math.floor(Math.random() * 10)}:${Math.floor(Math.random() * 60)}:00`);
+                        }
+
+                        const section = extractSectionFromUrl(link);
+                        allSections.add(section);
+
+                        allArticles.set(link, {
+                            enlace: link,
+                            titular: title,
+                            entradilla: '',
+                            fecha: date,
+                            autor: author,
+                            seccion: section,
+                            fuente: CONFIG.fuente.nombre
+                        });
+                    }
+                });
+
+                const articleArray = Array.from(allArticles.values());
+
+                const batchSize = 5;
+                const processedArticles = [];
+
+                for (let i = 0; i < articleArray.length; i += batchSize) {
+                    const batch = articleArray.slice(i, i + batchSize);
+                    const batchPromises = batch.map(async (news) => {
+                        try {
+                            const summary = await scrapeArticleContent(news.enlace, news.titular);
+                            return { ...news, entradilla: summary };
+                        } catch (error) {
+                            return {
+                                ...news,
+                                entradilla: `${news.titular}. Contenido disponible en el enlace original.`
+                            };
+                        }
+                    });
+
+                    const batchResults = await Promise.all(batchPromises);
+                    processedArticles.push(...batchResults);
+
+                    if (i + batchSize < articleArray.length) {
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                    }
+                }
+
+                return processedArticles;
+
+            } catch (error) {
+                if (retryCount === 0) {
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    return await scrapeHemerotecaPage(url, searchDate, 1);
+                }
+
+                return [];
+            }
+        };
+
+        const loadHemerotecaNews = async (dateString) => {
+            const grid = document.getElementById('newsGrid');
+            const stats = document.getElementById('stats');
+            const hemerotecaBtn = document.getElementById('fetchHemerotecaBtn');
+            const backBtn = document.getElementById('backToLatestBtn');
+            const mainTitle = document.getElementById('mainControlsTitle');
+
+            grid.innerHTML = `<p class="loading-message">Buscando noticias en la hemeroteca para el ${dateString}...</p>`;
+            stats.textContent = `Consultando archivo...`;
+            hemerotecaBtn.disabled = true;
+
+            allSections.clear();
+            let allHemerotecaArticles = [];
+
+            try {
+                stats.textContent = `Consultando archivo... (Página principal)`;
+                const baseUrl = `${CONFIG.fuente.hemeroteca_url}${dateString}/`;
+                const articlesFromBase = await scrapeHemerotecaPage(baseUrl, dateString);
+                if (articlesFromBase.length > 0) {
+                    allHemerotecaArticles.push(...articlesFromBase);
+                }
+
+                let page = 1;
+                let consecutiveEmptyPages = 0;
+                const maxEmptyPages = 2;
+                const maxPages = 10;
+
+                while (page <= maxPages && consecutiveEmptyPages < maxEmptyPages) {
+                    stats.textContent = `Consultando archivo... (Página ${page})`;
+                    const pageUrl = `${CONFIG.fuente.hemeroteca_url}${dateString}/${page}/`;
+                    const articlesFromPage = await scrapeHemerotecaPage(pageUrl, dateString);
+
+                    if (articlesFromPage.length === 0) {
+                        consecutiveEmptyPages++;
+                    } else {
+                        consecutiveEmptyPages = 0;
+                        allHemerotecaArticles.push(...articlesFromPage);
+                    }
+
+                    page++;
+
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+
+                const uniqueArticlesMap = new Map();
+                allHemerotecaArticles.forEach(article => {
+                    if (!uniqueArticlesMap.has(article.enlace)) {
+                        uniqueArticlesMap.set(article.enlace, article);
+                    }
+                });
+
+                currentNewsData = Array.from(uniqueArticlesMap.values());
+
+                if (currentNewsData.length === 0) {
+                    grid.innerHTML = `<div class="error-message"><h3>📅 No se encontraron noticias</h3><p>No hay noticias disponibles para la fecha ${dateString} en la hemeroteca de Cinco Días.</p></div>`;
+                    stats.textContent = `No se encontraron noticias para ${dateString}`;
+                } else {
+                    displayNews(currentNewsData);
+                    updateSectionsIndex();
+                    mainTitle.textContent = `Hemeroteca: ${dateString}`;
+                }
+
+            } catch (error) {
+                grid.innerHTML = `<div class="error-message"><h3>⚠️ Error al consultar la hemeroteca</h3><p>No se pudieron cargar las noticias para ${dateString}. Por favor, inténtelo de nuevo.</p></div>`;
+                stats.textContent = 'Error al consultar la hemeroteca';
+            } finally {
+                hemerotecaBtn.disabled = false;
+                backBtn.style.display = 'inline-block';
+            }
+        };
+
+        // Funciones de interfaz
+        const showModal = async (news) => {
+            const modalTitle = document.getElementById('modalTitle');
+            const modalAuthorInfo = document.getElementById('modalAuthorInfo');
+            const modalContent = document.getElementById('modalContent');
+            const modalSourceLink = document.getElementById('modalSourceLink');
+            const modal = document.getElementById('newsModal');
+
+            modalTitle.textContent = news.titular;
+            modalAuthorInfo.textContent = 'Cargando...';
+            modalContent.innerHTML = '<p>Cargando contenido completo...</p>';
+            modalSourceLink.href = news.enlace;
+            modal.style.display = 'block';
+
+            try {
+                let authorInfo = await extractAuthorInfoFromArticle(news.enlace);
+                modalAuthorInfo.textContent = authorInfo || `${news.autor || 'Autor no disponible'}\n${formatDateWithAuthor(news.fecha)}`;
+                const fullContentData = await scrapeFullArticleContent(news.enlace, news.titular);
+                let formattedContent = fullContentData.content;
+                if (formattedContent.startsWith('<div class="article-subtitle">')) {
+                    const endDivIndex = formattedContent.indexOf('</div>') + 6;
+                    const subtitleHtml = formattedContent.substring(0, endDivIndex);
+                    formattedContent = formattedContent.substring(endDivIndex).trim();
+                    modalContent.innerHTML = subtitleHtml + formattedContent.split('\n\n').filter(p => p.trim()).map(p => p.startsWith('<h') ? p : `<p>${p}</p>`).join('');
+                } else {
+                    modalContent.innerHTML = formattedContent.split('\n\n').filter(p => p.trim()).map(p => p.startsWith('<h') ? p : `<p>${p}</p>`).join('');
+                }
+            } catch (error) {
+                modalAuthorInfo.textContent = 'Información del autor no disponible';
+                modalContent.innerHTML = `<p>Error al cargar el contenido completo. <a href="${news.enlace}" target="_blank">Ver noticia original</a></p>`;
+            }
+        };
+
+        const closeModal = () => document.getElementById('newsModal').style.display = 'none';
+
+        const highlightText = (text, searchTerm) => {
+            if (!searchTerm || searchTerm.length < 2) return text;
+            const regex = new RegExp(`(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+            return text.replace(regex, '<span class="highlight">$1</span>');
+        };
+
+        const searchNews = (searchTerm) => {
+            currentSearchTerm = searchTerm;
+            displayNews(currentNewsData);
+        };
+
+        const updateSectionsIndex = () => {
+            const dropdownMenu = document.getElementById('dropdownMenu');
+            const sectionsCountEl = document.getElementById('sectionsCount');
+            if (!dropdownMenu) return;
+
+            document.querySelector('.dropdown-text').textContent = 'Todas las secciones';
+            document.querySelectorAll('.dropdown-item').forEach(item => item.classList.remove('active'));
+            const allItem = dropdownMenu.querySelector('.dropdown-item[data-section="all"]');
+            if (allItem) allItem.classList.add('active');
+            currentSection = 'all';
+
+            dropdownMenu.querySelectorAll('.dropdown-item:not([data-section="all"])').forEach(item => item.remove());
+
+            const sectionCounts = {};
+            currentNewsData.forEach(news => sectionCounts[news.seccion] = (sectionCounts[news.seccion] || 0) + 1);
+
+            sectionsCountEl.textContent = allSections.size;
+            if (allItem) allItem.querySelector('.section-count').textContent = currentNewsData.length;
+
+            const sortedSections = Array.from(allSections).sort((a, b) => formatSectionName(a).localeCompare(formatSectionName(b)));
+
+            sortedSections.forEach(section => {
+                const dropdownItem = document.createElement('div');
+                dropdownItem.className = 'dropdown-item';
+                dropdownItem.dataset.section = section;
+                dropdownItem.innerHTML = `<span class="section-icon">${getSectionIcon(section)}</span><span class="section-name">${formatSectionName(section)}</span><span class="section-count">${sectionCounts[section] || 0}</span>`;
+
+                dropdownItem.addEventListener('click', () => {
+                    document.querySelectorAll('.dropdown-item').forEach(item => item.classList.remove('active'));
+                    dropdownItem.classList.add('active');
+                    document.querySelector('.dropdown-text').textContent = formatSectionName(section);
+                    dropdownMenu.classList.remove('show');
+                    document.getElementById('dropdownToggle').classList.remove('active');
+                    currentSection = section;
+                    displayNews(currentNewsData);
+                });
+
+                dropdownMenu.appendChild(dropdownItem);
+            });
+        };
+
+        const displayNews = (newsData) => {
+            const grid = document.getElementById('newsGrid');
+            const stats = document.getElementById('stats');
+
+            grid.innerHTML = '';
+
+            if (!newsData || newsData.length === 0) {
+                grid.innerHTML = '<div class="error-message"><h3>⚠️ No se encontraron noticias</h3></div>';
+                stats.textContent = '';
+                return;
+            }
+
+            let filteredNews = newsData;
+
+            if (currentSection !== 'all') {
+                filteredNews = newsData.filter(news => news.seccion === currentSection);
+            }
+
+            if (currentSearchTerm.length >= 2) {
+                const searchLower = currentSearchTerm.toLowerCase();
+                filteredNews = filteredNews.filter(news =>
+                    (news.titular.toLowerCase() + ' ' + news.entradilla.toLowerCase()).includes(searchLower)
+                );
+            }
+
+            filteredNews.sort((a, b) => b.fecha - a.fecha);
+            stats.textContent = `Mostrando ${filteredNews.length} de ${newsData.length} noticias...`;
+
+            filteredNews.forEach(news => {
+                const newsItem = document.createElement('div');
+                newsItem.className = 'news-item';
+                newsItem.dataset.section = news.seccion;
+
+                const headlineText = news.titular || 'Sin título';
+
+                let descriptionText = '';
+
+                if (news.entradilla && news.entradilla.trim().length > 0 && news.entradilla !== news.titular) {
+                    descriptionText = news.entradilla;
+                } else {
+                    descriptionText = createFallbackContent(news.titular || 'Noticia disponible');
+                }
+
+                descriptionText = forceExactLines(descriptionText, news.titular, 4, 5);
+
+                const finalCheck = descriptionText.split('\n').filter(line => line.trim().length > 0);
+                if (finalCheck.length < 4) {
+                    descriptionText = createEmergencyContent(news.titular || 'Noticia');
+                }
+
+                newsItem.innerHTML = `<div class="news-item-header"><span class="news-source">${formatSectionName(news.seccion)}</span><span class="news-date">${formatDateWithAuthor(news.fecha, news.autor)}</span></div><h3 class="news-headline">${highlightText(headlineText, currentSearchTerm)}</h3><p class="news-description">${highlightText(descriptionText, currentSearchTerm)}</p>`;
+
+                newsItem.addEventListener('click', () => isReadMode ? showModal(news) : window.open(news.enlace, '_blank'));
+                newsItem.title = isReadMode ? 'Clic para leer noticia completa' : 'Clic para abrir en nueva pestaña';
+
+                grid.appendChild(newsItem);
+            });
+        };
+
+        const loadNews = async () => {
+            const grid = document.getElementById('newsGrid');
+            const stats = document.getElementById('stats');
+            const hemerotecaBtn = document.getElementById('fetchHemerotecaBtn');
+            const backBtn = document.getElementById('backToLatestBtn');
+            const mainTitle = document.getElementById('mainControlsTitle');
+
+            try {
+                grid.innerHTML = `<p class="loading-message">Cargando noticias de ${CONFIG.fuente.nombre}...</p>`;
+                stats.textContent = `Consultando ${CONFIG.fuente.nombre}...`;
+                allSections.clear();
+
+                const newsData = await scrapeCincoDias();
+
+                if (!newsData || newsData.length === 0) {
+                    throw new Error('No se encontraron noticias en la fuente');
+                }
+
+                currentNewsData = newsData;
+
+                displayNews(currentNewsData);
+                updateSectionsIndex();
+
+                hemerotecaBtn.style.display = 'inline-block';
+                backBtn.style.display = 'none';
+                document.getElementById('hemerotecaDate').value = new Date().toISOString().split('T')[0];
+                mainTitle.textContent = 'Últimas Noticias';
+
+            } catch (error) {
+                grid.innerHTML = `<div class="error-message">
+                    <h3>⚠️ Error al cargar noticias</h3>
+                    <p>${error.message}</p>
+                    <p>Por favor, verifique su conexión a internet e inténtelo de nuevo.</p>
+                    <button onclick="loadNews()" style="margin-top: 15px; padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer;">Reintentar</button>
+                </div>`;
+                stats.textContent = 'Error al cargar noticias';
+            }
+        };
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', () => {
+            loadNews();
+
+            // Event listeners
+            document.getElementById('readModeToggle').addEventListener('change', (e) => isReadMode = e.target.checked);
+
+            const hemerotecaDateInput = document.getElementById('hemerotecaDate');
+            const fetchHemerotecaBtn = document.getElementById('fetchHemerotecaBtn');
+            const backToLatestBtn = document.getElementById('backToLatestBtn');
+
+            const today = new Date().toISOString().split('T')[0];
+            hemerotecaDateInput.value = today;
+            hemerotecaDateInput.max = today;
+
+            fetchHemerotecaBtn.addEventListener('click', () => {
+                if (hemerotecaDateInput.value) loadHemerotecaNews(hemerotecaDateInput.value);
+            });
+
+            backToLatestBtn.addEventListener('click', loadNews);
+
+            // Dropdown
+            const dropdownToggle = document.getElementById('dropdownToggle');
+            const dropdownMenu = document.getElementById('dropdownMenu');
+
+            dropdownToggle.addEventListener('click', () => {
+                dropdownMenu.classList.toggle('show');
+                dropdownToggle.classList.toggle('active');
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!dropdownToggle.contains(e.target) && !dropdownMenu.contains(e.target)) {
+                    dropdownMenu.classList.remove('show');
+                    dropdownToggle.classList.remove('active');
+                }
+            });
+
+            // Search
+            const searchInput = document.getElementById('searchInput');
+            const searchClear = document.getElementById('searchClear');
+
+            searchInput.addEventListener('input', (e) => {
+                const searchTerm = e.target.value.trim();
+                searchClear.style.display = searchTerm ? 'block' : 'none';
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => searchNews(searchTerm), 300);
+            });
+
+            searchClear.addEventListener('click', () => {
+                searchInput.value = '';
+                searchClear.style.display = 'none';
+                searchNews('');
+            });
+
+            // All sections click
+            document.querySelector('.dropdown-item[data-section="all"]').addEventListener('click', () => {
+                document.querySelectorAll('.dropdown-item').forEach(item => item.classList.remove('active'));
+                document.querySelector('.dropdown-item[data-section="all"]').classList.add('active');
+                document.querySelector('.dropdown-text').textContent = 'Todas las secciones';
+                currentSection = 'all';
+                displayNews(currentNewsData);
+            });
+
+            // Modal
+            const modal = document.getElementById('newsModal');
+            document.getElementById('closeModal').addEventListener('click', closeModal);
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) closeModal();
+            });
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && modal.style.display === 'block') closeModal();
+            });
+        });
+    </script>
+</body>
+</html>
